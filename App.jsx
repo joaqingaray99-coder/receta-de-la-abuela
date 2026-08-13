@@ -220,12 +220,12 @@ function IconBadge({ name, size = 32, iconSize = 16, bg = colors.terracottaWash,
   );
 }
 
-function Logo() {
+function Logo({ compact }) {
   return (
-    <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-      <IconBadge name="ti-cup" size={30} iconSize={15} bg={colors.oliveWash} color={colors.oliveDark} radius={9} />
-      <div style={{ fontFamily: "Fraunces, serif", fontWeight: 700, fontSize: 14, color: colors.ink, lineHeight: 1.15 }}>
-        El Recetario de la Abuela
+    <div style={{ display: "flex", alignItems: "center", gap: 9, minWidth: 0 }}>
+      <IconBadge name="ti-cup" size={compact ? 32 : 30} iconSize={compact ? 16 : 15} bg={colors.oliveWash} color={colors.oliveDark} radius={9} />
+      <div style={{ fontFamily: "Fraunces, serif", fontWeight: 700, fontSize: compact ? 14.5 : 14, color: colors.ink, lineHeight: 1.2, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+        {compact ? "El Recetario de la Abuela" : "El Recetario de la Abuela"}
       </div>
     </div>
   );
@@ -448,35 +448,77 @@ function AdminScreen({ onBack }) {
   );
 }
 
-function RemedyCard({ item, catId, onOpen }) {
+function RemedyCard({ item, catId, onOpen, isFavorite, onToggleFavorite }) {
   return (
     <button
       onClick={() => onOpen(item)}
-      style={{ textAlign: "left", background: colors.card, border: `1px solid ${colors.line}`, borderRadius: 13, padding: "13px 15px", cursor: "pointer", width: "100%", display: "flex", alignItems: "flex-start", gap: 11 }}
+      style={{ textAlign: "left", background: colors.card, border: `1px solid ${colors.line}`, borderRadius: 14, padding: "14px 14px", cursor: "pointer", width: "100%", display: "flex", alignItems: "center", gap: 12, minHeight: 64 }}
     >
-      <IconBadge name={getItemIcon(item.n)} size={32} iconSize={16} />
-      <div style={{ minWidth: 0 }}>
-        <div style={{ fontFamily: "Fraunces, serif", fontSize: 13.5, fontWeight: 600, color: colors.ink, marginBottom: 3 }}>{item.n}</div>
-        <div style={{ fontSize: 11, color: colors.inkSoft, display: "flex", alignItems: "center", gap: 4 }}>
+      <IconBadge name={getItemIcon(item.n)} size={38} iconSize={19} radius={11} />
+      <div style={{ minWidth: 0, flex: 1 }}>
+        <div style={{ fontFamily: "Fraunces, serif", fontSize: 14.5, fontWeight: 600, color: colors.ink, marginBottom: 4, lineHeight: 1.3 }}>{item.n}</div>
+        <div style={{ fontSize: 12, color: colors.inkSoft, display: "flex", alignItems: "center", gap: 4 }}>
           <Icon name="ti-clock" size={12} color={colors.inkSoft} />
           <span>{item.cuando}</span>
         </div>
       </div>
+      {onToggleFavorite && (
+        <div
+          role="button"
+          aria-label={isFavorite ? "Quitar de favoritos" : "Agregar a favoritos"}
+          onClick={(e) => { e.stopPropagation(); onToggleFavorite(item.n); }}
+          style={{ width: 34, height: 34, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, cursor: "pointer" }}
+        >
+          <Icon name={isFavorite ? "ti-star-filled" : "ti-star"} size={19} color={isFavorite ? colors.terracotta : colors.line} />
+        </div>
+      )}
+      <Icon name="ti-chevron-right" size={17} color={colors.line} />
     </button>
   );
 }
 
 function RemedyDetail({ item, onClose }) {
+  useEffect(() => {
+    const prevOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => { document.body.style.overflow = prevOverflow; };
+  }, []);
+
   return (
-    <div style={{ minHeight: 300, background: "rgba(46,54,32,0.55)", display: "flex", alignItems: "center", justifyContent: "center", padding: 20, borderRadius: 16 }}>
-      <div style={{ background: colors.cream, borderRadius: 18, padding: 26, maxWidth: 420, width: "100%" }}>
+    <div
+      onClick={onClose}
+      style={{
+        position: "fixed",
+        inset: 0,
+        background: "rgba(46,54,32,0.55)",
+        display: "flex",
+        alignItems: "flex-end",
+        justifyContent: "center",
+        zIndex: 1000,
+        WebkitTapHighlightColor: "transparent",
+      }}
+    >
+      <div
+        onClick={(e) => e.stopPropagation()}
+        style={{
+          background: colors.cream,
+          borderRadius: "20px 20px 0 0",
+          padding: "22px 22px calc(22px + env(safe-area-inset-bottom, 0px))",
+          maxWidth: 460,
+          width: "100%",
+          maxHeight: "88vh",
+          overflowY: "auto",
+          WebkitOverflowScrolling: "touch",
+        }}
+      >
+        <div style={{ width: 36, height: 4, borderRadius: 2, background: colors.line, margin: "0 auto 16px" }} />
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 6 }}>
           <div style={{ flex: 1, paddingRight: 12 }}>
-            <IconBadge name={getItemIcon(item.n)} size={34} iconSize={17} radius={10} />
-            <h3 style={{ fontFamily: "Fraunces, serif", fontSize: 18, margin: "10px 0 0", color: colors.ink, lineHeight: 1.25 }}>{item.n}</h3>
+            <IconBadge name={getItemIcon(item.n)} size={38} iconSize={19} radius={11} />
+            <h3 style={{ fontFamily: "Fraunces, serif", fontSize: 19, margin: "10px 0 0", color: colors.ink, lineHeight: 1.3 }}>{item.n}</h3>
           </div>
-          <button onClick={onClose} aria-label="Cerrar" style={{ background: colors.card, border: `1px solid ${colors.line}`, borderRadius: 8, width: 28, height: 28, display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", flexShrink: 0 }}>
-            <Icon name="ti-x" size={15} color={colors.inkSoft} />
+          <button onClick={onClose} aria-label="Cerrar" style={{ background: colors.card, border: `1px solid ${colors.line}`, borderRadius: 10, width: 38, height: 38, display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", flexShrink: 0 }}>
+            <Icon name="ti-x" size={18} color={colors.inkSoft} />
           </button>
         </div>
 
@@ -518,10 +560,45 @@ function RemedyDetail({ item, onClose }) {
   );
 }
 
-function MainApp({ onLogout }) {
+function MainApp({ onLogout, userEmail }) {
   const [activeCat, setActiveCat] = useState(DATA[0].id);
   const [search, setSearch] = useState("");
   const [openItem, setOpenItem] = useState(null);
+  const [favorites, setFavorites] = useState(new Set());
+
+  useEffect(() => {
+    let active = true;
+    async function loadFavorites() {
+      try {
+        const { data, error } = await supabase
+          .from("favoritos")
+          .select("item_name")
+          .eq("email", userEmail);
+        if (error) throw error;
+        if (active) setFavorites(new Set((data || []).map((r) => r.item_name)));
+      } catch (e) {
+        // Si falla (por ejemplo la tabla no existe todavía), seguimos sin favoritos.
+      }
+    }
+    if (userEmail) loadFavorites();
+    return () => { active = false; };
+  }, [userEmail]);
+
+  const toggleFavorite = async (itemName) => {
+    const isFav = favorites.has(itemName);
+    const next = new Set(favorites);
+    if (isFav) next.delete(itemName); else next.add(itemName);
+    setFavorites(next);
+    try {
+      if (isFav) {
+        await supabase.from("favoritos").delete().eq("email", userEmail).eq("item_name", itemName);
+      } else {
+        await supabase.from("favoritos").upsert({ email: userEmail, item_name: itemName });
+      }
+    } catch (e) {
+      // Si falla el guardado remoto, el cambio local ya se ve; no bloqueamos la UI.
+    }
+  };
 
   const results = useMemo(() => {
     if (!search.trim()) return null;
@@ -536,41 +613,74 @@ function MainApp({ onLogout }) {
   }, [search]);
 
   const activeCategory = DATA.find((c) => c.id === activeCat);
+  const favoriteItems = useMemo(() => {
+    const found = [];
+    DATA.forEach((cat) => {
+      cat.items.forEach((it) => {
+        if (favorites.has(it.n)) found.push({ item: it, catId: cat.id });
+      });
+    });
+    return found;
+  }, [favorites]);
 
   return (
     <div style={{ background: colors.cream, minHeight: 500, paddingBottom: 40 }}>
-      <div style={{ padding: "16px 20px", borderBottom: `1px solid ${colors.line}`, display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 12, background: colors.card }}>
-        <Logo />
-        <button onClick={onLogout} style={{ background: "none", border: `1px solid ${colors.line}`, borderRadius: 8, padding: "7px 13px", fontSize: 12, color: colors.inkSoft, cursor: "pointer", display: "flex", alignItems: "center", gap: 5 }}>
-          <Icon name="ti-logout" size={13} color={colors.inkSoft} /><span>Cerrar sesión</span>
-        </button>
-      </div>
+      <div style={{ position: "sticky", top: 0, zIndex: 20, background: colors.card, borderBottom: `1px solid ${colors.line}` }}>
+        <div style={{ padding: "14px 16px", display: "flex", justifyContent: "space-between", alignItems: "center", gap: 10 }}>
+          <Logo compact />
+          <button onClick={onLogout} aria-label="Cerrar sesión" style={{ background: "none", border: `1px solid ${colors.line}`, borderRadius: 10, width: 38, height: 38, flexShrink: 0, color: colors.inkSoft, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" }}>
+            <Icon name="ti-logout" size={16} color={colors.inkSoft} />
+          </button>
+        </div>
 
-      <div style={{ padding: "20px 20px 6px", position: "relative", maxWidth: 480 }}>
-        <input
-          type="text"
-          placeholder={`Buscar entre ${TOTAL_ITEMS} remedios...`}
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          style={{ ...inputStyle, paddingLeft: 36 }}
-        />
-        <div style={{ position: "absolute", left: 13, top: 33 }}>
-          <Icon name="ti-search" size={15} color={colors.inkSoft} />
+        <div style={{ padding: "0 16px 12px", position: "relative" }}>
+          <input
+            type="text"
+            placeholder={`Buscar entre ${TOTAL_ITEMS} remedios...`}
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            style={{ ...inputStyle, paddingLeft: 38, paddingTop: 13, paddingBottom: 13, fontSize: 15 }}
+          />
+          <div style={{ position: "absolute", left: 29, top: 13 }}>
+            <Icon name="ti-search" size={16} color={colors.inkSoft} />
+          </div>
         </div>
       </div>
 
       {results ? (
-        <div style={{ padding: "14px 20px" }}>
+        <div style={{ padding: "14px 16px" }}>
           <p style={{ fontSize: 12.5, color: colors.inkSoft, marginBottom: 12 }}>{results.length} resultados para "{search}"</p>
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(240px, 1fr))", gap: 12 }}>
+          <div style={{ display: "grid", gridTemplateColumns: "1fr", gap: 10 }}>
             {results.map((it, idx) => (
-              <RemedyCard key={idx} item={it} catId={it.catId} onOpen={setOpenItem} />
+              <RemedyCard key={idx} item={it} catId={it.catId} onOpen={setOpenItem} isFavorite={favorites.has(it.n)} onToggleFavorite={toggleFavorite} />
             ))}
           </div>
         </div>
       ) : (
         <>
-          <div style={{ display: "flex", gap: 8, overflowX: "auto", padding: "12px 20px 4px" }}>
+          <div style={{ display: "flex", gap: 8, overflowX: "auto", padding: "14px 16px 6px", WebkitOverflowScrolling: "touch" }}>
+            <button
+              onClick={() => setActiveCat("favoritos")}
+              style={{
+                flexShrink: 0,
+                padding: "10px 16px 10px 12px",
+                minHeight: 40,
+                borderRadius: 999,
+                border: `1px solid ${activeCat === "favoritos" ? colors.oliveDark : colors.line}`,
+                background: activeCat === "favoritos" ? colors.olive : "#fff",
+                color: activeCat === "favoritos" ? "#FFFFFF" : colors.ink,
+                fontSize: 13,
+                fontWeight: 500,
+                cursor: "pointer",
+                whiteSpace: "nowrap",
+                display: "flex",
+                alignItems: "center",
+                gap: 7,
+              }}
+            >
+              <Icon name="ti-star-filled" size={15} color={activeCat === "favoritos" ? "#FFFFFF" : colors.terracotta} />
+              <span>Favoritos · {favoriteItems.length}</span>
+            </button>
             {DATA.map((cat) => {
               const active = activeCat === cat.id;
               return (
@@ -579,49 +689,69 @@ function MainApp({ onLogout }) {
                   onClick={() => setActiveCat(cat.id)}
                   style={{
                     flexShrink: 0,
-                    padding: "7px 14px 7px 10px",
+                    padding: "10px 16px 10px 12px",
+                    minHeight: 40,
                     borderRadius: 999,
                     border: `1px solid ${active ? colors.oliveDark : colors.line}`,
                     background: active ? colors.olive : "#fff",
                     color: active ? "#FFFFFF" : colors.ink,
-                    fontSize: 12.5,
+                    fontSize: 13,
                     fontWeight: 500,
                     cursor: "pointer",
                     whiteSpace: "nowrap",
                     display: "flex",
                     alignItems: "center",
-                    gap: 6,
+                    gap: 7,
                   }}
                 >
-                  <Icon name={CAT_ICON[cat.id]} size={14} color={active ? "#FFFFFF" : colors.terracottaDeep} />
+                  <Icon name={CAT_ICON[cat.id]} size={15} color={active ? "#FFFFFF" : colors.terracottaDeep} />
                   <span>{cat.label} · {cat.items.length}</span>
                 </button>
               );
             })}
           </div>
 
-          <div style={{ padding: "16px 20px" }}>
-            <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 14 }}>
-              <IconBadge name={CAT_ICON[activeCat]} size={26} iconSize={14} bg={colors.oliveWash} color={colors.oliveDark} />
-              <div>
-                <div style={{ fontFamily: "Fraunces, serif", fontSize: 17, fontWeight: 700, color: colors.ink }}>{activeCategory.label}</div>
-                <div style={{ fontSize: 12.5, color: colors.inkSoft }}>{activeCategory.desc}</div>
+          {activeCat === "favoritos" ? (
+            <div style={{ padding: "14px 16px" }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 9, marginBottom: 14 }}>
+                <IconBadge name="ti-star-filled" size={28} iconSize={15} bg={colors.terracottaWash} color={colors.terracotta} />
+                <div>
+                  <div style={{ fontFamily: "Fraunces, serif", fontSize: 17, fontWeight: 700, color: colors.ink }}>Tus favoritos</div>
+                  <div style={{ fontSize: 12.5, color: colors.inkSoft }}>Los remedios que guardaste</div>
+                </div>
+              </div>
+              {favoriteItems.length === 0 ? (
+                <p style={{ fontSize: 13, color: colors.inkSoft, textAlign: "center", padding: "30px 20px", lineHeight: 1.6 }}>
+                  Todavía no guardaste ningún remedio. Tocá la estrella en cualquier remedio para agregarlo acá.
+                </p>
+              ) : (
+                <div style={{ display: "grid", gridTemplateColumns: "1fr", gap: 10 }}>
+                  {favoriteItems.map((o, idx) => (
+                    <RemedyCard key={idx} item={o.item} catId={o.catId} onOpen={setOpenItem} isFavorite={true} onToggleFavorite={toggleFavorite} />
+                  ))}
+                </div>
+              )}
+            </div>
+          ) : (
+            <div style={{ padding: "14px 16px" }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 9, marginBottom: 14 }}>
+                <IconBadge name={CAT_ICON[activeCat]} size={28} iconSize={15} bg={colors.oliveWash} color={colors.oliveDark} />
+                <div>
+                  <div style={{ fontFamily: "Fraunces, serif", fontSize: 17, fontWeight: 700, color: colors.ink }}>{activeCategory.label}</div>
+                  <div style={{ fontSize: 12.5, color: colors.inkSoft }}>{activeCategory.desc}</div>
+                </div>
+              </div>
+              <div style={{ display: "grid", gridTemplateColumns: "1fr", gap: 10 }}>
+                {activeCategory.items.map((it, idx) => (
+                  <RemedyCard key={idx} item={it} catId={activeCat} onOpen={setOpenItem} isFavorite={favorites.has(it.n)} onToggleFavorite={toggleFavorite} />
+                ))}
               </div>
             </div>
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(240px, 1fr))", gap: 12 }}>
-              {activeCategory.items.map((it, idx) => (
-                <RemedyCard key={idx} item={it} catId={activeCat} onOpen={setOpenItem} />
-              ))}
-            </div>
-          </div>
+          )}
         </>
       )}
 
-      {openItem && (
-        <div style={{ padding: "10px 20px 0" }}>
-          <RemedyDetail item={openItem} onClose={() => setOpenItem(null)} />
-        </div>
-      )}
+      {openItem && <RemedyDetail item={openItem} onClose={() => setOpenItem(null)} />}
 
       <p style={{ fontSize: 11, color: "#A39A7E", textAlign: "center", padding: "24px 20px 0", lineHeight: 1.6 }}>
         Estos remedios son de carácter complementario y tradicional. No reemplazan tratamientos médicos.
@@ -637,7 +767,7 @@ export default function App() {
   const [user, setUser] = useState(null);
 
   if (screen === "admin") return <AdminScreen onBack={() => setScreen("login")} />;
-  if (screen === "app" && user) return <MainApp onLogout={() => { setUser(null); setScreen("login"); }} />;
+  if (screen === "app" && user) return <MainApp userEmail={user} onLogout={() => { setUser(null); setScreen("login"); }} />;
 
   return (
     <LoginScreen
