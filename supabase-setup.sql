@@ -24,3 +24,21 @@ create policy "Permitir actualizar compradores"
 create policy "Permitir leer compradores para el login"
   on compradores for select
   using (true);
+
+-- =========================================================
+-- Tabla de favoritos: cada usuario puede guardar remedios
+-- =========================================================
+
+create table favoritos (
+  email text not null,
+  item_name text not null,
+  created_at timestamp with time zone default now(),
+  primary key (email, item_name)
+);
+
+alter table favoritos enable row level security;
+
+create policy "Permitir gestionar favoritos"
+  on favoritos for all
+  using (true)
+  with check (true);
