@@ -22,6 +22,35 @@ const CAT_ICON = {
   recuperacion: "ti-heart",
 };
 
+const CAT_TAG = {
+  prevencion: "Diario",
+  tos: "Frecuente",
+  congestion: "Frecuente",
+  garganta: "Frecuente",
+  fiebre: "Urgente",
+  cuerpo: "Alivio",
+  cabeza: "Alivio",
+  recuperacion: "Final",
+};
+
+function getItemTag(name) {
+  const n = name.toLowerCase();
+  if (n.includes("baño")) return "Baño";
+  if (n.includes("vaho") || n.includes("vapor")) return "Vaho";
+  if (n.includes("gárgara")) return "Gárgaras";
+  if (n.includes("compresa") || n.includes("paño")) return "Compresa";
+  if (n.includes("masaje")) return "Masaje";
+  if (n.includes("batido")) return "Batido";
+  if (n.includes("caldo") || n.includes("ensalada") || n.includes("yogur")) return "Comida";
+  if (n.includes("shot") || n.includes("tónico")) return "Tónico";
+  if (n.includes("sol") || n.includes("sueño") || n.includes("descanso") || n.includes("hidratación") || n.includes("ventilación") || n.includes("actividad física") || n.includes("estiramiento") || n.includes("retorno")) return "Hábito";
+  if (n.includes("chequeo") || n.includes("señales")) return "Atención";
+  if (n.includes("lavado nasal")) return "Lavado";
+  if (n.includes("jarabe") || n.includes("miel") || n.includes("almíbar") || n.includes("caramelo")) return "Jarabe";
+  if (n.includes("infusión") || n.includes("té ") || n.includes("agua de")) return "Bebida";
+  return "Remedio";
+}
+
 function getItemIcon(name) {
   const n = name.toLowerCase();
   if (n.includes("baño")) return "ti-bath";
@@ -200,12 +229,27 @@ const colors = {
   inkSoft: "#5C6248",
   olive: "#5C7238",
   oliveDark: "#46592A",
+  oliveLight: "#7C9350",
   oliveWash: "#EAF0DE",
   terracotta: "#C0603A",
   terracottaDeep: "#9C4B2D",
   terracottaWash: "#FBEEE6",
-  line: "#E1D6B8",
-  card: "#FFFDF8",
+  amber: "#C98A2C",
+  amberWash: "#FBF0DA",
+  urgent: "#C0453A",
+  line: "#E7DCC0",
+  card: "#FFFFFF",
+};
+
+const CAT_TAG_COLOR = {
+  prevencion: colors.oliveLight,
+  tos: colors.terracotta,
+  congestion: colors.terracotta,
+  garganta: colors.terracotta,
+  fiebre: colors.urgent,
+  cuerpo: colors.amber,
+  cabeza: colors.amber,
+  recuperacion: colors.oliveDark,
 };
 
 function Icon({ name, size = 16, color = colors.ink }) {
@@ -448,32 +492,139 @@ function AdminScreen({ onBack }) {
   );
 }
 
-function RemedyCard({ item, catId, onOpen, isFavorite, onToggleFavorite }) {
+function RemedyCard({ item, onOpen, isFavorite, onToggleFavorite }) {
   return (
     <button
       onClick={() => onOpen(item)}
-      style={{ textAlign: "left", background: colors.card, border: `1px solid ${colors.line}`, borderRadius: 14, padding: "14px 14px", cursor: "pointer", width: "100%", display: "flex", alignItems: "center", gap: 12, minHeight: 64 }}
+      style={{ textAlign: "center", background: colors.card, border: `1px solid ${colors.line}`, borderRadius: 16, padding: "14px 10px 12px", cursor: "pointer", position: "relative", boxShadow: "0 6px 16px -10px rgba(46,54,32,0.2)" }}
     >
-      <IconBadge name={getItemIcon(item.n)} size={38} iconSize={19} radius={11} />
-      <div style={{ minWidth: 0, flex: 1 }}>
-        <div style={{ fontFamily: "Fraunces, serif", fontSize: 14.5, fontWeight: 600, color: colors.ink, marginBottom: 4, lineHeight: 1.3 }}>{item.n}</div>
-        <div style={{ fontSize: 12, color: colors.inkSoft, display: "flex", alignItems: "center", gap: 4 }}>
-          <Icon name="ti-clock" size={12} color={colors.inkSoft} />
-          <span>{item.cuando}</span>
-        </div>
-      </div>
       {onToggleFavorite && (
         <div
           role="button"
           aria-label={isFavorite ? "Quitar de favoritos" : "Agregar a favoritos"}
           onClick={(e) => { e.stopPropagation(); onToggleFavorite(item.n); }}
-          style={{ width: 34, height: 34, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, cursor: "pointer" }}
+          style={{ position: "absolute", top: 7, right: 7, width: 26, height: 26, display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer" }}
         >
-          <Icon name={isFavorite ? "ti-star-filled" : "ti-star"} size={19} color={isFavorite ? colors.terracotta : colors.line} />
+          <Icon name={isFavorite ? "ti-star-filled" : "ti-star"} size={16} color={isFavorite ? colors.terracotta : colors.line} />
         </div>
       )}
-      <Icon name="ti-chevron-right" size={17} color={colors.line} />
+      <div style={{ width: 44, height: 44, borderRadius: 13, background: colors.terracottaWash, display: "flex", alignItems: "center", justifyContent: "center", margin: "2px auto 9px" }}>
+        <Icon name={getItemIcon(item.n)} size={21} color={colors.terracottaDeep} />
+      </div>
+      <div style={{ display: "inline-block", fontSize: 9.5, fontWeight: 700, color: colors.oliveDark, background: colors.oliveWash, padding: "2px 8px", borderRadius: 999, marginBottom: 7 }}>
+        {getItemTag(item.n)}
+      </div>
+      <div style={{ fontFamily: "Fraunces, serif", fontWeight: 600, fontSize: 12.5, color: colors.ink, lineHeight: 1.3, marginBottom: 4 }}>{item.n}</div>
+      <div style={{ fontSize: 10.5, color: colors.inkSoft }}>{item.cuando}</div>
     </button>
+  );
+}
+
+function CategoryCard({ cat, onOpen }) {
+  return (
+    <button
+      onClick={() => onOpen(cat.id)}
+      style={{ textAlign: "center", background: colors.card, border: `1px solid ${colors.line}`, borderRadius: 18, padding: "16px 10px 14px", cursor: "pointer", position: "relative", boxShadow: "0 6px 16px -10px rgba(46,54,32,0.25)" }}
+    >
+      <div style={{ position: "absolute", top: 9, right: 9, fontSize: 9, fontWeight: 700, color: "#fff", background: CAT_TAG_COLOR[cat.id], padding: "3px 8px", borderRadius: 999 }}>
+        {CAT_TAG[cat.id]}
+      </div>
+      <div style={{ width: 52, height: 52, borderRadius: 16, background: colors.oliveWash, display: "flex", alignItems: "center", justifyContent: "center", margin: "4px auto 10px" }}>
+        <Icon name={CAT_ICON[cat.id]} size={26} color={colors.oliveDark} />
+      </div>
+      <div style={{ fontFamily: "Fraunces, serif", fontWeight: 700, fontSize: 13, color: colors.ink, lineHeight: 1.3, marginBottom: 3 }}>{cat.label}</div>
+      <div style={{ fontSize: 11, color: colors.inkSoft }}>{cat.items.length} remedios</div>
+    </button>
+  );
+}
+
+function HeaderBar({ title, subtitle, onBack }) {
+  return (
+    <div style={{ background: colors.olive, borderRadius: "0 0 26px 26px", padding: "16px 18px 20px" }}>
+      <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+        {onBack ? (
+          <button onClick={onBack} aria-label="Volver" style={{ width: 34, height: 34, borderRadius: 10, background: "rgba(255,255,255,0.18)", border: "none", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, cursor: "pointer" }}>
+            <Icon name="ti-arrow-left" size={17} color="#FFFFFF" />
+          </button>
+        ) : (
+          <div style={{ width: 34, height: 34, borderRadius: 10, background: "rgba(255,255,255,0.18)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+            <Icon name="ti-cup" size={17} color="#FFFFFF" />
+          </div>
+        )}
+        <div style={{ minWidth: 0 }}>
+          <div style={{ fontFamily: "Fraunces, serif", fontWeight: 700, fontSize: 16, color: "#FFFFFF", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{title}</div>
+          {subtitle && <div style={{ fontSize: 11, color: "rgba(255,255,255,0.75)", marginTop: 1 }}>{subtitle}</div>}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function SearchBar({ value, onChange, placeholder }) {
+  return (
+    <div style={{ padding: "0 16px", marginTop: -16, position: "relative", zIndex: 2 }}>
+      <div style={{ background: "#fff", borderRadius: 14, padding: "2px 14px", display: "flex", alignItems: "center", gap: 8, boxShadow: "0 8px 20px -10px rgba(46,54,32,0.3)" }}>
+        <Icon name="ti-search" size={16} color={colors.inkSoft} />
+        <input
+          type="text"
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
+          placeholder={placeholder}
+          style={{ border: "none", outline: "none", padding: "12px 0", fontSize: 14, width: "100%", fontFamily: "Inter, sans-serif", color: colors.ink, background: "transparent" }}
+        />
+      </div>
+    </div>
+  );
+}
+
+function BottomNav({ active, onChange }) {
+  const items = [
+    { id: "home", icon: "ti-home", label: "Inicio" },
+    { id: "favorites", icon: "ti-star", label: "Favoritos" },
+    { id: "account", icon: "ti-user", label: "Cuenta" },
+  ];
+  return (
+    <div style={{ background: "#fff", borderTop: `1px solid ${colors.line}`, padding: "9px 10px calc(9px + env(safe-area-inset-bottom, 0px))", display: "flex", justifyContent: "space-around", position: "sticky", bottom: 0 }}>
+      {items.map((it) => {
+        const isActive = active === it.id;
+        return (
+          <button
+            key={it.id}
+            onClick={() => onChange(it.id)}
+            style={{ background: "none", border: "none", display: "flex", flexDirection: "column", alignItems: "center", gap: 3, padding: "4px 16px", cursor: "pointer" }}
+          >
+            <Icon name={it.icon} size={19} color={isActive ? colors.olive : "#B7AD8F"} />
+            <span style={{ fontSize: 10, fontWeight: 600, color: isActive ? colors.olive : "#B7AD8F" }}>{it.label}</span>
+          </button>
+        );
+      })}
+    </div>
+  );
+}
+
+function AccountScreen({ userEmail, onLogout }) {
+  return (
+    <div style={{ flex: 1, display: "flex", flexDirection: "column" }}>
+      <HeaderBar title="Tu cuenta" />
+      <div style={{ padding: "24px 20px", flex: 1 }}>
+        <div style={{ background: colors.card, border: `1px solid ${colors.line}`, borderRadius: 16, padding: 20, marginBottom: 16, display: "flex", alignItems: "center", gap: 12 }}>
+          <div style={{ width: 42, height: 42, borderRadius: "50%", background: colors.oliveWash, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+            <Icon name="ti-user" size={20} color={colors.oliveDark} />
+          </div>
+          <div style={{ minWidth: 0 }}>
+            <div style={{ fontSize: 11, color: colors.inkSoft }}>Sesión iniciada como</div>
+            <div style={{ fontSize: 13.5, color: colors.ink, fontWeight: 600, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{userEmail}</div>
+          </div>
+        </div>
+        <button
+          onClick={onLogout}
+          style={{ width: "100%", padding: "14px", borderRadius: 12, border: `1px solid ${colors.line}`, background: colors.card, color: colors.terracottaDeep, fontSize: 14, fontWeight: 600, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 8 }}
+        >
+          <Icon name="ti-logout" size={16} color={colors.terracottaDeep} />
+          <span>Cerrar sesión</span>
+        </button>
+      </div>
+    </div>
   );
 }
 
@@ -561,7 +712,8 @@ function RemedyDetail({ item, onClose }) {
 }
 
 function MainApp({ onLogout, userEmail }) {
-  const [activeCat, setActiveCat] = useState(DATA[0].id);
+  const [nav, setNav] = useState("home");
+  const [activeCat, setActiveCat] = useState(null);
   const [search, setSearch] = useState("");
   const [openItem, setOpenItem] = useState(null);
   const [favorites, setFavorites] = useState(new Set());
@@ -600,163 +752,119 @@ function MainApp({ onLogout, userEmail }) {
     }
   };
 
-  const results = useMemo(() => {
+  const goHome = () => { setNav("home"); setActiveCat(null); setSearch(""); };
+
+  const searchResults = useMemo(() => {
     if (!search.trim()) return null;
     const q = search.toLowerCase();
     const found = [];
     DATA.forEach((cat) => {
       cat.items.forEach((it) => {
-        if (it.n.toLowerCase().includes(q)) found.push({ ...it, catId: cat.id });
+        if (it.n.toLowerCase().includes(q)) found.push(it);
       });
     });
     return found;
   }, [search]);
 
-  const activeCategory = DATA.find((c) => c.id === activeCat);
   const favoriteItems = useMemo(() => {
     const found = [];
     DATA.forEach((cat) => {
       cat.items.forEach((it) => {
-        if (favorites.has(it.n)) found.push({ item: it, catId: cat.id });
+        if (favorites.has(it.n)) found.push(it);
       });
     });
     return found;
   }, [favorites]);
 
-  return (
-    <div style={{ background: colors.cream, minHeight: 500, paddingBottom: 40 }}>
-      <div style={{ position: "sticky", top: 0, zIndex: 20, background: colors.card, borderBottom: `1px solid ${colors.line}` }}>
-        <div style={{ padding: "14px 16px", display: "flex", justifyContent: "space-between", alignItems: "center", gap: 10 }}>
-          <Logo compact />
-          <button onClick={onLogout} aria-label="Cerrar sesión" style={{ background: "none", border: `1px solid ${colors.line}`, borderRadius: 10, width: 38, height: 38, flexShrink: 0, color: colors.inkSoft, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" }}>
-            <Icon name="ti-logout" size={16} color={colors.inkSoft} />
-          </button>
-        </div>
+  const activeCategory = activeCat ? DATA.find((c) => c.id === activeCat) : null;
 
-        <div style={{ padding: "0 16px 12px", position: "relative" }}>
-          <input
-            type="text"
-            placeholder={`Buscar entre ${TOTAL_ITEMS} remedios...`}
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            style={{ ...inputStyle, paddingLeft: 38, paddingTop: 13, paddingBottom: 13, fontSize: 15 }}
-          />
-          <div style={{ position: "absolute", left: 29, top: 13 }}>
-            <Icon name="ti-search" size={16} color={colors.inkSoft} />
-          </div>
+  let content;
+
+  if (nav === "account") {
+    content = <AccountScreen userEmail={userEmail} onLogout={onLogout} />;
+  } else if (nav === "favorites") {
+    content = (
+      <div>
+        <HeaderBar title="Tus favoritos" subtitle={`${favoriteItems.length} guardados`} />
+        <div style={{ padding: "18px 16px 20px" }}>
+          {favoriteItems.length === 0 ? (
+            <p style={{ fontSize: 13, color: colors.inkSoft, textAlign: "center", padding: "30px 10px", lineHeight: 1.6 }}>
+              Todavía no guardaste ningún remedio. Tocá la estrella en cualquier remedio para agregarlo acá.
+            </p>
+          ) : (
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 11 }}>
+              {favoriteItems.map((it, idx) => (
+                <RemedyCard key={idx} item={it} onOpen={setOpenItem} isFavorite={true} onToggleFavorite={toggleFavorite} />
+              ))}
+            </div>
+          )}
         </div>
       </div>
-
-      {results ? (
-        <div style={{ padding: "14px 16px" }}>
-          <p style={{ fontSize: 12.5, color: colors.inkSoft, marginBottom: 12 }}>{results.length} resultados para "{search}"</p>
-          <div style={{ display: "grid", gridTemplateColumns: "1fr", gap: 10 }}>
-            {results.map((it, idx) => (
-              <RemedyCard key={idx} item={it} catId={it.catId} onOpen={setOpenItem} isFavorite={favorites.has(it.n)} onToggleFavorite={toggleFavorite} />
+    );
+  } else if (searchResults) {
+    content = (
+      <div>
+        <HeaderBar title="El Recetario de la Abuela" subtitle={`${TOTAL_ITEMS} remedios naturales`} />
+        <SearchBar value={search} onChange={setSearch} placeholder="Buscar remedio..." />
+        <div style={{ padding: "18px 16px 20px" }}>
+          <p style={{ fontSize: 12.5, color: colors.inkSoft, marginBottom: 12 }}>{searchResults.length} resultados para "{search}"</p>
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 11 }}>
+            {searchResults.map((it, idx) => (
+              <RemedyCard key={idx} item={it} onOpen={setOpenItem} isFavorite={favorites.has(it.n)} onToggleFavorite={toggleFavorite} />
             ))}
           </div>
         </div>
-      ) : (
-        <>
-          <div style={{ display: "flex", gap: 8, overflowX: "auto", padding: "14px 16px 6px", WebkitOverflowScrolling: "touch" }}>
-            <button
-              onClick={() => setActiveCat("favoritos")}
-              style={{
-                flexShrink: 0,
-                padding: "10px 16px 10px 12px",
-                minHeight: 40,
-                borderRadius: 999,
-                border: `1px solid ${activeCat === "favoritos" ? colors.oliveDark : colors.line}`,
-                background: activeCat === "favoritos" ? colors.olive : "#fff",
-                color: activeCat === "favoritos" ? "#FFFFFF" : colors.ink,
-                fontSize: 13,
-                fontWeight: 500,
-                cursor: "pointer",
-                whiteSpace: "nowrap",
-                display: "flex",
-                alignItems: "center",
-                gap: 7,
-              }}
-            >
-              <Icon name="ti-star-filled" size={15} color={activeCat === "favoritos" ? "#FFFFFF" : colors.terracotta} />
-              <span>Favoritos · {favoriteItems.length}</span>
-            </button>
-            {DATA.map((cat) => {
-              const active = activeCat === cat.id;
-              return (
-                <button
-                  key={cat.id}
-                  onClick={() => setActiveCat(cat.id)}
-                  style={{
-                    flexShrink: 0,
-                    padding: "10px 16px 10px 12px",
-                    minHeight: 40,
-                    borderRadius: 999,
-                    border: `1px solid ${active ? colors.oliveDark : colors.line}`,
-                    background: active ? colors.olive : "#fff",
-                    color: active ? "#FFFFFF" : colors.ink,
-                    fontSize: 13,
-                    fontWeight: 500,
-                    cursor: "pointer",
-                    whiteSpace: "nowrap",
-                    display: "flex",
-                    alignItems: "center",
-                    gap: 7,
-                  }}
-                >
-                  <Icon name={CAT_ICON[cat.id]} size={15} color={active ? "#FFFFFF" : colors.terracottaDeep} />
-                  <span>{cat.label} · {cat.items.length}</span>
-                </button>
-              );
-            })}
+      </div>
+    );
+  } else if (activeCategory) {
+    content = (
+      <div>
+        <HeaderBar title={activeCategory.label} subtitle={`${activeCategory.items.length} remedios`} onBack={() => setActiveCat(null)} />
+        <SearchBar value={search} onChange={setSearch} placeholder="Buscar remedio..." />
+        <div style={{ padding: "18px 16px 20px" }}>
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 11 }}>
+            {activeCategory.items.map((it, idx) => (
+              <RemedyCard key={idx} item={it} onOpen={setOpenItem} isFavorite={favorites.has(it.n)} onToggleFavorite={toggleFavorite} />
+            ))}
           </div>
+        </div>
+      </div>
+    );
+  } else {
+    content = (
+      <div>
+        <HeaderBar title="El Recetario de la Abuela" subtitle={`${TOTAL_ITEMS} remedios naturales`} />
+        <SearchBar value={search} onChange={setSearch} placeholder="Buscar remedio..." />
+        <div style={{ padding: "18px 16px 20px" }}>
+          <div style={{ fontFamily: "Fraunces, serif", fontWeight: 700, fontSize: 15, color: colors.ink, marginBottom: 12 }}>Elegí una categoría</div>
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 11 }}>
+            {DATA.map((cat) => (
+              <CategoryCard key={cat.id} cat={cat} onOpen={setActiveCat} />
+            ))}
+          </div>
+        </div>
+      </div>
+    );
+  }
 
-          {activeCat === "favoritos" ? (
-            <div style={{ padding: "14px 16px" }}>
-              <div style={{ display: "flex", alignItems: "center", gap: 9, marginBottom: 14 }}>
-                <IconBadge name="ti-star-filled" size={28} iconSize={15} bg={colors.terracottaWash} color={colors.terracotta} />
-                <div>
-                  <div style={{ fontFamily: "Fraunces, serif", fontSize: 17, fontWeight: 700, color: colors.ink }}>Tus favoritos</div>
-                  <div style={{ fontSize: 12.5, color: colors.inkSoft }}>Los remedios que guardaste</div>
-                </div>
-              </div>
-              {favoriteItems.length === 0 ? (
-                <p style={{ fontSize: 13, color: colors.inkSoft, textAlign: "center", padding: "30px 20px", lineHeight: 1.6 }}>
-                  Todavía no guardaste ningún remedio. Tocá la estrella en cualquier remedio para agregarlo acá.
-                </p>
-              ) : (
-                <div style={{ display: "grid", gridTemplateColumns: "1fr", gap: 10 }}>
-                  {favoriteItems.map((o, idx) => (
-                    <RemedyCard key={idx} item={o.item} catId={o.catId} onOpen={setOpenItem} isFavorite={true} onToggleFavorite={toggleFavorite} />
-                  ))}
-                </div>
-              )}
-            </div>
-          ) : (
-            <div style={{ padding: "14px 16px" }}>
-              <div style={{ display: "flex", alignItems: "center", gap: 9, marginBottom: 14 }}>
-                <IconBadge name={CAT_ICON[activeCat]} size={28} iconSize={15} bg={colors.oliveWash} color={colors.oliveDark} />
-                <div>
-                  <div style={{ fontFamily: "Fraunces, serif", fontSize: 17, fontWeight: 700, color: colors.ink }}>{activeCategory.label}</div>
-                  <div style={{ fontSize: 12.5, color: colors.inkSoft }}>{activeCategory.desc}</div>
-                </div>
-              </div>
-              <div style={{ display: "grid", gridTemplateColumns: "1fr", gap: 10 }}>
-                {activeCategory.items.map((it, idx) => (
-                  <RemedyCard key={idx} item={it} catId={activeCat} onOpen={setOpenItem} isFavorite={favorites.has(it.n)} onToggleFavorite={toggleFavorite} />
-                ))}
-              </div>
-            </div>
-          )}
-        </>
-      )}
+  return (
+    <div style={{ background: colors.cream, minHeight: 500, display: "flex", flexDirection: "column" }}>
+      <div style={{ flex: 1 }}>{content}</div>
 
       {openItem && <RemedyDetail item={openItem} onClose={() => setOpenItem(null)} />}
 
-      <p style={{ fontSize: 11, color: "#A39A7E", textAlign: "center", padding: "24px 20px 0", lineHeight: 1.6 }}>
+      <p style={{ fontSize: 10.5, color: "#A39A7E", textAlign: "center", padding: "0 20px 14px", lineHeight: 1.6 }}>
         Estos remedios son de carácter complementario y tradicional. No reemplazan tratamientos médicos.
         Ante síntomas persistentes o graves, consultá a un médico.
       </p>
+
+      <BottomNav
+        active={nav}
+        onChange={(id) => {
+          if (id === "home") goHome();
+          else { setNav(id); setActiveCat(null); setSearch(""); }
+        }}
+      />
     </div>
   );
 }
