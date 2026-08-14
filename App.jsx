@@ -218,7 +218,7 @@ function useBrandAssets() {
       }
     };
     addLink("rda-font-link", "https://fonts.googleapis.com/css2?family=Fraunces:wght@600;700&family=Inter:wght@400;500;600&display=swap");
-    addLink("rda-icon-link", "https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@2/dist/tabler-icons.min.css");
+    addLink("rda-icon-link", "https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/dist/tabler-icons.min.css");
   }, []);
 }
 
