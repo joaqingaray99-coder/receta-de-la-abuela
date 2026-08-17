@@ -277,7 +277,6 @@ function Logo({ compact }) {
 
 function LoginScreen({ onLogin, onGoAdmin }) {
   const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const [clicks, setClicks] = useState(0);
@@ -288,22 +287,21 @@ function LoginScreen({ onLogin, onGoAdmin }) {
     setLoading(true);
     try {
       const cleanEmail = email.trim().toLowerCase();
-      const passHash = await hashPassword(password);
       const { data, error: dbError } = await supabase
         .from("compradores")
-        .select("password_hash")
+        .select("email")
         .eq("email", cleanEmail)
         .maybeSingle();
 
       if (dbError) throw dbError;
 
-      if (data && data.password_hash === passHash) {
+      if (data) {
         onLogin(cleanEmail);
       } else {
-        setError("Email o contraseña incorrectos.");
+        setError("No encontramos ese email entre nuestros compradores.");
       }
     } catch (err) {
-      setError("Email o contraseña incorrectos.");
+      setError("No encontramos ese email entre nuestros compradores.");
     }
     setLoading(false);
   };
@@ -324,14 +322,12 @@ function LoginScreen({ onLogin, onGoAdmin }) {
             Ingresá a tu recetario
           </h1>
           <p style={{ fontSize: 13, color: colors.inkSoft, margin: "0 0 20px", lineHeight: 1.5 }}>
-            Usá el email y la contraseña que recibiste por correo tras tu compra.
+            Usá el mismo email con el que hiciste tu compra.
           </p>
 
           <form onSubmit={handleSubmit}>
             <label style={{ fontSize: 12, color: colors.inkSoft, display: "block", marginBottom: 5 }}>Email</label>
             <input type="email" required value={email} onChange={(e) => setEmail(e.target.value)} placeholder="tu@email.com" style={inputStyle} />
-            <label style={{ fontSize: 12, color: colors.inkSoft, display: "block", margin: "14px 0 5px" }}>Contraseña</label>
-            <input type="password" required value={password} onChange={(e) => setPassword(e.target.value)} placeholder="••••••••" style={inputStyle} />
 
             {error && <p style={{ color: colors.terracottaDeep, fontSize: 12.5, margin: "12px 0 0" }}>{error}</p>}
 
@@ -343,7 +339,7 @@ function LoginScreen({ onLogin, onGoAdmin }) {
         </div>
 
         <p style={{ textAlign: "center", fontSize: 11.5, color: "#A39A7E", marginTop: 22, lineHeight: 1.6 }}>
-          ¿No recibiste tus datos de acceso? Escribinos y te los reenviamos.
+          ¿Compraste y no te reconoce el email? Escribinos y lo revisamos.
         </p>
 
         {clicks >= 5 && (
@@ -391,7 +387,6 @@ function AdminScreen({ onBack }) {
   const [key, setKey] = useState("");
   const [unlocked, setUnlocked] = useState(false);
   const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
   const [msg, setMsg] = useState("");
   const [list, setList] = useState([]);
 
@@ -423,17 +418,15 @@ function AdminScreen({ onBack }) {
     setMsg("");
     try {
       const cleanEmail = email.trim().toLowerCase();
-      const passHash = await hashPassword(password);
       const { error } = await supabase
         .from("compradores")
-        .upsert({ email: cleanEmail, password_hash: passHash });
+        .upsert({ email: cleanEmail });
       if (error) throw error;
-      setMsg(`Usuario ${cleanEmail} creado correctamente.`);
+      setMsg(`Acceso para ${cleanEmail} creado correctamente.`);
       setEmail("");
-      setPassword("");
       loadList();
     } catch (err) {
-      setMsg("Error al crear el usuario, intentá de nuevo.");
+      setMsg("Error al crear el acceso, intentá de nuevo.");
     }
   };
 
@@ -462,14 +455,12 @@ function AdminScreen({ onBack }) {
           <h2 style={{ fontFamily: "Fraunces, serif", fontSize: 19, margin: 0, color: colors.ink }}>Agregar compradora/comprador</h2>
         </div>
         <p style={{ fontSize: 13, color: colors.inkSoft, margin: "0 0 20px" }}>
-          Generá un email y contraseña para cada persona que compró, y envíaselo por mail.
+          Agregá el email de cada persona que compró (por si el webhook automático falla o querés dar acceso manual).
         </p>
 
         <form onSubmit={addUser} style={{ background: colors.card, border: `1px solid ${colors.line}`, borderRadius: 16, padding: 22 }}>
           <label style={{ fontSize: 12, color: colors.inkSoft }}>Email del comprador</label>
           <input type="email" required value={email} onChange={(e) => setEmail(e.target.value)} style={{ ...inputStyle, marginTop: 5, marginBottom: 14 }} placeholder="cliente@email.com" />
-          <label style={{ fontSize: 12, color: colors.inkSoft }}>Contraseña a asignar</label>
-          <input type="text" required value={password} onChange={(e) => setPassword(e.target.value)} style={{ ...inputStyle, marginTop: 5 }} placeholder="Ej: abuela4821" />
           <button type="submit" style={btnStyle}><Icon name="ti-circle-plus" size={15} color="#FFFFFF" /><span>Crear acceso</span></button>
           {msg && <p style={{ fontSize: 12.5, color: colors.oliveDark, marginTop: 12 }}>{msg}</p>}
         </form>
